@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>parkirmalang.com — Cek Status Parkir Malang</title>
+  <meta name="description" content="Prototype parkirmalang.com untuk mencari lokasi parkir dan mengecek status retribusi, pajak parkir, atau belum terverifikasi.">
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">P</span><span>parkirmalang<span class="dot">.com</span></span></div>
+  <button class="report-top" onclick="openReport()">⚠️ Laporkan parkir</button>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-copy">
+      <div class="eyebrow">TRANSPARANSI PARKIR MALANG</div>
+      <h1>Sebelum bayar parkir,<br><span>cek dulu.</span></h1>
+      <p>Cari lokasi parkir, lihat statusnya, dan cek informasi tarif yang tersedia.</p>
+      <div class="search">
+        <span>⌕</span>
+        <input id="searchInput" type="search" placeholder="Cari jalan, tempat, atau lokasi..." autocomplete="off">
+        <button onclick="useLocation()">📍 Lokasi saya</button>
+      </div>
+      <div class="quick">
+        <button class="filter active" data-filter="all">Semua</button>
+        <button class="filter" data-filter="retribusi">🟢 Retribusi</button>
+        <button class="filter" data-filter="pajak">🔵 Pajak parkir</button>
+        <button class="filter" data-filter="unknown">⚪ Belum terverifikasi</button>
+      </div>
+    </div>
+    <div class="hero-note">
+      <strong>Yang dibedakan</strong>
+      <p><b>Retribusi</b> dan <b>pajak parkir</b> bukan hal yang sama. Status di situs harus berdasarkan sumber yang bisa diverifikasi.</p>
+    </div>
+  </section>
+<section class="status-guide">
+
+  <div class="status-card retribusi">
+    <div class="status-icon">🟢</div>
+    <div>
+      <h2>RETRIBUSI PARKIR</h2>
+      <p>Parkir resmi yang dikelola melalui retribusi pemerintah.</p>
+
+      <div class="tariffs">
+        <div>
+          <small>Tarif ojol</small>
+          <strong>GRATIS</strong>
+        </div>
+
+        <div>
+          <small>Tarif motor</small>
+          <strong>Rp2.000</strong>
+        </div>
+
+        <div>
+          <small>Tarif mobil</small>
+          <strong>Rp3.000</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-card pajak">
+    <div class="status-icon">🔵</div>
+    <div>
+      <h2>PAJAK PARKIR</h2>
+      <p>Parkir pada lokasi usaha atau lahan privat yang masuk kategori pajak parkir.</p>
+    </div>
+  </div>
+
+  <div class="status-card belum">
+    <div class="status-icon">⚪</div>
+    <div>
+      <h2>BELUM TERVERIFIKASI</h2>
+      <p>Belum tersedia data yang cukup untuk memastikan status parkir lokasi ini.</p>
+    </div>
+  </div>
+
+</section>
+  <section class="stats">
+    <div><strong id="countAll">6</strong><span>lokasi contoh</span></div>
+    <div><strong>3</strong><span>status</span></div>
+    <div><strong>2026</strong><span>data prototype</span></div>
+  </section>
+
+  <section class="content">
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="map-legend">
+        <span><i class="g"></i> Retribusi</span>
+        <span><i class="b"></i> Pajak parkir</span>
+        <span><i class="x"></i> Belum terverifikasi</span>
+      </div>
+    </div>
+
+    <div class="list-wrap">
+      <div class="list-head">
+        <div><h2>Lokasi parkir</h2><span id="resultText">6 lokasi</span></div>
+        <select id="sortSelect">
+          <option value="name">Nama A–Z</option>
+          <option value="status">Status</option>
+        </select>
+      </div>
+      <div id="cards"></div>
+    </div>
+  </section>
+
+  <section class="how">
+    <div><span class="num">01</span><h3>Cari lokasi</h3><p>Temukan titik parkir berdasarkan nama jalan atau tempat.</p></div>
+    <div><span class="num">02</span><h3>Cek status</h3><p>Lihat apakah informasinya tercatat sebagai retribusi, pajak parkir, atau belum terverifikasi.</p></div>
+    <div><span class="num">03</span><h3>Laporkan perubahan</h3><p>Jika kondisi lapangan berbeda, kirim laporan agar dapat diverifikasi.</p></div>
+  </section>
+
+  <section class="disclaimer">
+    <b>Catatan penting</b>
+    <p>Prototype ini bukan situs resmi Pemerintah Kota Malang. Label “belum terverifikasi” tidak berarti ilegal. Data lokasi nyata harus diisi setelah diverifikasi dari sumber resmi dan/atau pihak pengelola.</p>
+  </section>
+  <section class="example-location">
+  <div class="example-location-header">
+    <div>
+      <small>CONTOH LOKASI</small>
+      <h2>📍 Parkir Jalan Ijen</h2>
+    </div>
+
+    <span class="status-badge">🟢 Retribusi Parkir</span>
+  </div>
+
+  <p class="example-desc">
+    Informasi status dan tarif parkir di lokasi.
+  </p>
+
+  <button class="detail-button" onclick="showParkingDetail(1)">
+    Lihat detail parkir →
+  </button>
+</section>
+
+<div id="parkingDetail" class="parking-modal">
+  <div class="parking-modal-box">
+
+    <button class="close-detail" onclick="closeParkingDetail()">×</button>
+
+    <small>INFORMASI PARKIR</small>
+    <h2>📍 Parkir Jalan Ijen</h2>
+
+    <div class="detail-status">
+      🟢 <strong>RETRIBUSI PARKIR</strong>
+    </div>
+
+    <div class="detail-tariffs">
+      <div>
+        <span>Tarif ojol</span>
+        <strong>GRATIS</strong>
+      </div>
+
+      <div>
+        <span>Tarif motor</span>
+        <strong>Rp2.000</strong>
+      </div>
+
+      <div>
+        <span>Tarif mobil</span>
+        <strong>Rp3.000</strong>
+      </div>
+    </div>
+
+    <div class="detail-info">
+      <p><strong>Status:</strong> Retribusi parkir</p>
+      <p><strong>Sumber:</strong> Belum diisi</p>
+      <p><strong>Terakhir diverifikasi:</strong> Belum diisi</p>
+    </div>
+
+    <a id="detailNavigation" class="detail-navigation" target="_blank" rel="noopener">
+  🧭 Navigasi ke lokasi
+</a>
+
+  <button class="report-detail" onclick="reportFromDetail()">
+  ⚠️ Laporkan jika informasi berbeda
+</button>
+
+  </div>
+</div>
+</main>
+
+<footer>
+  <div><b>parkirmalang.com</b><span>Prototype MVP</span></div>
+  <div class="footer-links">
+    <a href="https://malangkota.go.id/" target="_blank" rel="noopener">Pemkot Malang</a>
+    <a href="https://dishub.malangkota.go.id/" target="_blank" rel="noopener">Dishub Malang</a>
+    <a href="https://bapenda.malangkota.go.id/" target="_blank" rel="noopener">Bapenda Malang</a>
+  </div>
+</footer>
+
+<div class="modal" id="reportModal" aria-hidden="true">
+  <div class="modal-box">
+    <button class="close" onclick="closeReport()">×</button>
+    <h2>Laporkan kondisi parkir</h2>
+    <p class="muted">Laporan tidak otomatis menjadi status resmi. Tim perlu memverifikasinya.</p>
+    <label>Lokasi<input id="rLocation" placeholder="Contoh: Jl. ..."></label>
+    <label>Diminta bayar<input id="rPrice" inputmode="numeric" placeholder="Rp..."></label>
+    <label>
+  Jenis laporan
+  <select id="rType">
+    <option>Tarif berbeda</option>
+    <option>Status parkir berbeda</option>
+    <option>Lokasi sudah tidak ada</option>
+    <option>Informasi lainnya</option>
+  </select>
+</label>
+    <label>Ada karcis?<select><option>Ya</option><option>Tidak</option><option>Tidak tahu</option></select></label>
+    <label>Catatan<textarea placeholder="Ceritakan kondisi yang kamu temui..."></textarea></label>
+    <button class="submit" onclick="submitReport()">Kirim laporan</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
+<script>
+function openParkingDetail() {
+  document.getElementById("parkingDetail").style.display = "flex";
+}
+
+function closeParkingDetail() {
+  document.getElementById("parkingDetail").style.display = "none";
+}
+</script>
+</body>
+</html>
